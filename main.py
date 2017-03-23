@@ -69,10 +69,11 @@ lift_finder = LiftFinder()
 
 def main():
     print('hiya')
-    for i in range(0, 200):
+    img = lift_finder.get_img()
+    for i in range(0, 500):
         print(i)
-        lift_finder.process_image(lift_finder.get_img())
-        lift_finder.send_img()
+        lift_finder.process_image(img)
+        # lift_finder.send_img()
 
 t = timeit.Timer(main)
 
@@ -81,4 +82,4 @@ try:
 except:
     t.print_exc()
 
-# before: 7.5s
+# unoptimized: 7.1s
