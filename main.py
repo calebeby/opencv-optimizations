@@ -68,7 +68,7 @@ lift_finder = LiftFinder()
 def main():
     print('hiya')
     img = lift_finder.get_img()
-    for i in range(0, 500):
+    for i in range(0, 10000):
         print(i)
         lift_finder.process_image(img)
     lift_finder.send_img()
@@ -81,3 +81,11 @@ except:
     t.print_exc()
 
 # unoptimized: 7.1s
+
+# 10000
+# unoptimized 141.5189071470004
+# unoptimized 133.46007964199998
+# optimized 139.74055051899995
+# optimized 137.2685950239993
+# optimized 132.5930843240003
+# optimized 132.97502474500016
