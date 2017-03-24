@@ -66,10 +66,8 @@ class LiftFinder:
 lift_finder = LiftFinder()
 
 def main():
-    print('hiya')
     img = lift_finder.get_img()
     for i in range(0, 100000):
-        print(i)
         lift_finder.process_image(img)
     lift_finder.send_img()
 
