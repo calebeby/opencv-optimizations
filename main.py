@@ -7,12 +7,16 @@ import timeit
 # After:        usec per loop
 
 class LiftFinder:
-    HEIGHT = 240
-    WIDTH = 320
-    img = np.zeros(shape=(240, 320, 3), dtype=np.uint8)
+    HEIGHT = 480
+    WIDTH = 640
+    lower = np.array([70, 230, 40])
+    upper = np.array([90, 255, 255])
 
     def __init__(self):
-        pass
+        self.img = np.empty(shape=(self.HEIGHT, self.WIDTH, 3), dtype=np.uint8)
+        self.hsv = np.empty(shape=(self.HEIGHT, self.WIDTH, 3), dtype=np.uint8)
+        self.filtered = np.empty(shape=(self.HEIGHT, self.WIDTH, 1), dtype=np.uint8)
+        self.blurred = np.empty(shape=(self.HEIGHT, self.WIDTH, 1), dtype=np.uint8)
 
     def get_img(self):
         return cv2.imread('test.jpg')
@@ -21,21 +25,17 @@ class LiftFinder:
         cv2.imwrite('output.jpg', self.img)
 
     def process_image(self, img):
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        self.img = img
+        cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV, dst=self.hsv)
 
-        lower = np.array([70, 230, 40])
-        upper = np.array([90, 255, 255])
+        cv2.inRange(self.hsv, self.lower, self.upper, dst=self.filtered)
+        cv2.GaussianBlur(self.filtered, (7, 7), 0, dst=self.blurred)
 
-        filtered = cv2.inRange(hsv, lower, upper)
-        blurred = cv2.GaussianBlur(filtered, (7, 7), 0)
+        _, all_contours, _ = cv2.findContours(
+            self.blurred, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        output = blurred
-
-        im2, orig_contours, hierarchy = cv2.findContours(
-            output, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-        # loop over the contours
-        for c in orig_contours:
+        # draw all contours in purple
+        for c in all_contours:
             cv2.drawContours(img, [c], -1, (255, 0, 255), 2)
 
         x = []
@@ -48,8 +48,8 @@ class LiftFinder:
             return cX, cY
 
         # find two largest contours by area
-        contour_areas = np.array(list(map(cv2.contourArea, orig_contours)))
-        contours = [orig_contours[i] for i in np.argsort(contour_areas)[-2:]]
+        contour_areas = np.array(list(map(cv2.contourArea, all_contours)))
+        contours = [all_contours[i] for i in np.argsort(contour_areas)[-2:]]
 
         # find center of each contour
         for c in contours:
@@ -57,13 +57,11 @@ class LiftFinder:
             x.append(cX)
             y.append(cY)
 
-            cv2.drawContours(img, [c], -1, (0, 0, 255), 2)
+            cv2.drawContours(self.img, [c], -1, (0, 0, 255), 2)
 
         goal_x = int(np.mean(x))
         goal_y = int(np.mean(y))
         cv2.circle(self.img, (goal_x, goal_y), 5, (0, 0, 255), -1)
-
-        self.img = img
 
 lift_finder = LiftFinder()
 
@@ -73,7 +71,7 @@ def main():
     for i in range(0, 500):
         print(i)
         lift_finder.process_image(img)
-        # lift_finder.send_img()
+    lift_finder.send_img()
 
 t = timeit.Timer(main)
 
